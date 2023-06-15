@@ -1,0 +1,25 @@
+---
+title: "Economic Connectedness"
+author: "Harnoor Kaur"
+format: html
+editor: visual
+execute: 
+  echo: false
+---
+
+```{r}
+#| message: false
+library(tidyverse)
+library (readr)
+```
+
+```{r}
+#| message: false
+ec <- read_csv(file = "data/social_capital_county.csv", show_col_types = FALSE) |>
+  select(county_name, ec_county, pop2018) |>
+separate_wider_delim(county_name, delim = ", ", names = c("County", "State"))
+```
+
+```{r}
+summary(ec)
+```
