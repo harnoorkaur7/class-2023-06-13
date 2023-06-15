@@ -11,6 +11,7 @@ execute:
 #| message: false
 library(tidyverse)
 library (readr)
+library(gghighlight)
 ```
 
 ```{r}
@@ -22,4 +23,16 @@ separate_wider_delim(county_name, delim = ", ", names = c("County", "State"))
 
 ```{r}
 summary(ec)
+#Is there a relationship between the total population in a state and the average economic connectedness of counties in the state?
+#mutate(state = str_replace())
+ec_sum <- ec |>
+  group_by(State) |>
+  summarize (ec_state = mean(ec_county, na.rm = TRUE, sort = TRUE), pop_state_2018 = sum(pop2018, na.rm = TRUE))
+
+ec_plot <- ggplot(ec_sum, aes(x = log(pop_state_2018), y = ec_state)) +
+  geom_point() +
+  theme_classic() +
+  gghighlight(ec_state > 0.8, label_key = last)
+ec_plot
+
 ```
