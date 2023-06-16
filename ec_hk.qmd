@@ -12,6 +12,7 @@ execute:
 library(tidyverse)
 library (readr)
 library(gghighlight)
+library(plotly)
 ```
 
 ```{r}
@@ -19,20 +20,32 @@ library(gghighlight)
 ec <- read_csv(file = "data/social_capital_county.csv", show_col_types = FALSE) |>
   select(county_name, ec_county, pop2018) |>
 separate_wider_delim(county_name, delim = ", ", names = c("County", "State"))
+#mutate(state = str_replace(county_name, ".*, ", ""))
 ```
 
 ```{r}
-summary(ec)
+#| message: false
+#summary(ec)
 #Is there a relationship between the total population in a state and the average economic connectedness of counties in the state?
 #mutate(state = str_replace())
 ec_sum <- ec |>
-  group_by(State) |>
-  summarize (ec_state = mean(ec_county, na.rm = TRUE, sort = TRUE), pop_state_2018 = sum(pop2018, na.rm = TRUE))
+  summarize(ec_state = mean(ec_county, na.rm = TRUE, sort = TRUE), pop_state_2018 = sum(pop2018, na.rm = TRUE), .by = State)
 
-ec_plot <- ggplot(ec_sum, aes(x = log(pop_state_2018), y = ec_state)) +
+ec_plot <- ggplot(ec_sum, aes(x = pop_state_2018, y = ec_state,
+                              text = paste("State:", State, "\n", 
+                                           "Average EC:", ec_state))) +
   geom_point() +
-  theme_classic() +
-  gghighlight(ec_state > 0.8, label_key = last)
-ec_plot
+ theme_classic() +
+  gghighlight(ec_state > 0.8, label_key = last) +
+  ggplot2::geom_smooth(aes(group=-1), method = "lm", se = FALSE, color = "darkred") +
+  labs( title = "Economic Connectedness and State Population in the U.S.",
+       subtitle = "Bigger states have counties with lower economic connectedness",
+       caption = "Data from Opportunity Insights", 
+       x = "State Population",
+       y = "Average Economic Connectedness of County") +
+  scale_x_log10(labels = scales::comma_format())
+
+ec_plot_2 <- ggplotly(ec_plot, tooltip = "text")
+ec_plot_2
 
 ```
